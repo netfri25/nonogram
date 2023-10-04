@@ -1,4 +1,4 @@
-#include "../include/board.h"
+#include "board.h"
 
 #include <stdlib.h>
 #include <assert.h>

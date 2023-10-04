@@ -1,6 +1,6 @@
-#include "../include/game.h"
+#include "game.h"
 
-#include "../include/da.h"
+#include "da.h"
 
 #include <stdlib.h>
 #include <string.h>

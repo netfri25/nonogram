@@ -9,7 +9,7 @@
 #include <math.h>
 #include <time.h>
 
-#include "../include/game.h"
+#include "game.h"
 
 typedef struct {
     int32_t x;
@@ -71,7 +71,7 @@ int main(void) {
 
     App app = {0};
 
-    app.size = 7;
+    app.size = 100;
     app.game = game_alloc(app.size, app.size);
     app.last_changed = (IVec2) { -1, -1 };
     app.last_button = MOUSE_BUTTON_LEFT;
