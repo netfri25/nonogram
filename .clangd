@@ -1,0 +1,6 @@
+CompileFlags:
+  Add:
+    - "-pedantic"
+    - "-Wall"
+    - "-Wextra"
+    - "-Wswitch-enum"
