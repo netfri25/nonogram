@@ -78,7 +78,6 @@ int main(void) {
     app.to_fill = CELL_REMOVE;
     app.to_draw = &app.game.board;
 
-    srand(69);
     game_generate_new(&app.game);
     calc_longest_row_and_col(&app);
     calc_font_sizes(&app);
