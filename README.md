@@ -7,7 +7,7 @@ simple nonogram game writtern in C with [raylib](https://www.raylib.com/)
  - [raylib](https://www.raylib.com/)
 
 #### Process
-first, build the build tool (nob)
+first, build the [build tool](https://github.com/tsoding/nobuild)
 ```shell
 gcc nob.c -o nob
 ```
