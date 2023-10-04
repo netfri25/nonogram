@@ -34,3 +34,16 @@ void board_fill_random(Board* const board);
 
 // checks if the given position is out of bounds
 bool board_is_out(Board const* const self, size_t const x, size_t const y);
+
+// fill a line of `cell` between two points, only when they are `apply_to`
+void board_fill_between(
+    Board* const self,
+
+    int const x1,
+    int const y1,
+    int const x2,
+    int const y2,
+
+    enum Cell const cell,
+    enum Cell const apply_to
+);

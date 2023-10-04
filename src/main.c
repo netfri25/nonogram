@@ -1,5 +1,4 @@
-// TODO: better mouse motion handling
-// TODO: create a solver as a separate program (maybe write it in Haskell, or even Prolog)
+// TODO(2): create a solver as a separate program (maybe write it in Haskell, or even Prolog)
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -119,12 +118,19 @@ void handle_input(App* const app) {
         app->fill_apply_to = here;
     }
 
-    if (IsMouseButtonDown(app->last_button) && (app->last_changed.x != mouse_i.x || app->last_changed.y != mouse_i.y)) {
-        enum Cell const here = board_get(&app->game.board, mouse_i.x, mouse_i.y);
-        if (here == app->fill_apply_to) {
-            board_set(&app->game.board, mouse_i.x, mouse_i.y, app->to_fill);
-            app->last_changed = mouse_i;
-        }
+    if (IsMouseButtonDown(app->last_button) && !board_is_out(&app->game.board, mouse_i.x, mouse_i.y)) {
+        bool const no_last_changed = app->last_changed.x == -1 && app->last_changed.y == -1;
+        IVec2 const snd = no_last_changed ? mouse_i : app->last_changed;
+        board_fill_between(
+            &app->game.board,
+            snd.x,
+            snd.y,
+            mouse_i.x,
+            mouse_i.y,
+            app->to_fill,
+            app->fill_apply_to
+        );
+        app->last_changed = mouse_i;
     }
 
     if (IsMouseButtonReleased(app->last_button)) {

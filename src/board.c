@@ -37,3 +37,45 @@ void board_fill_random(Board* const self) {
 bool board_is_out(Board const* const self, size_t const x, size_t const y) {
     return x >= self->w || y >= self->h;
 }
+
+void board_fill_between(
+    Board* const self,
+
+    int const x1,
+    int const y1,
+    int const x2,
+    int const y2,
+
+    enum Cell const cell,
+    enum Cell const apply_to
+) {
+    // https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm#All_cases
+    int const dx = abs(x2 - x1);
+    int const sx = x1 < x2 ? 1 : -1;
+    int const dy = -abs(y2 - y1);
+    int const sy = y1 < y2 ? 1 : -1;
+
+    int error = dx + dy;
+    int x = x1;
+    int y = y1;
+
+    for (;;) {
+        if (board_get(self, x, y) == apply_to)
+            board_set(self, x, y, cell);
+
+        if (x == x2 && y == y2) break;
+
+        int const e2 = 2 * error;
+        if (e2 >= dy) {
+            if (x == x2) break;
+            error += dy;
+            x += sx;
+        }
+
+        if (e2 <= dx) {
+            if (y == y2) break;
+            error += dx;
+            y += sy;
+        }
+    }
+}
