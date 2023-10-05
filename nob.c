@@ -12,18 +12,6 @@
 
 #define PROG_NAME   "main"
 
-typedef struct {
-    Nob_String_View* items;
-    size_t count;
-    size_t capacity;
-} File_Paths_SV;
-
-typedef struct {
-    Nob_Proc* items;
-    size_t count;
-    size_t capacity;
-} Processes;
-
 void compiler_flags(Nob_Cmd* const cmd) {
     char const* const output_path = BUILD_DIR "/" PROG_NAME;
     nob_cmd_append(cmd, CC, CFLAGS, "-o", output_path);
