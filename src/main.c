@@ -106,7 +106,7 @@ void handle_input(App* const app) {
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
         enum Cell const here = board_get(&app->game.board, mouse_i.x, mouse_i.y);
         app->last_button = MOUSE_BUTTON_LEFT;
-        app->to_fill = (here != CELL_FILLED) * CELL_FILLED;
+        app->to_fill = (here != CELL_FILL) * CELL_FILL;
         app->fill_apply_to = here;
     }
 
@@ -201,7 +201,7 @@ void draw_cell(
     bool const mouse_inside
 ) {
     Color background;
-    if (cell == CELL_FILLED) {
+    if (cell == CELL_FILL) {
         background = BLACK;
     } else {
         background = RAYWHITE;

@@ -5,7 +5,7 @@
 
 enum Cell {
     CELL_EMPTY = 0, // nothing has been set yet
-    CELL_FILLED,    // fill the cell
+    CELL_FILL,      // fill the cell
     CELL_REMOVE,    // remove the cell, kinda like marking it with an X
 };
 

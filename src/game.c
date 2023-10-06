@@ -72,11 +72,11 @@ static void count_groups(Game* const self) {
         IntVec row_groups = {0};
         while (x < w) {
             // skip all non-filled cells
-            for (; x < w && board_get(&self->solution, x, y) != CELL_FILLED; x++);
+            for (; x < w && board_get(&self->solution, x, y) != CELL_FILL; x++);
 
             // count cells
             size_t i;
-            for (i = 0; x + i < w && board_get(&self->solution, x + i, y) == CELL_FILLED; i++);
+            for (i = 0; x + i < w && board_get(&self->solution, x + i, y) == CELL_FILL; i++);
             if (i == 0) break;
             da_append(&row_groups, i);
             x += i;
@@ -91,11 +91,11 @@ static void count_groups(Game* const self) {
         IntVec col_groups = {0};
         while (y < h) {
             // skip all non-filled cells
-            for (; y < h && board_get(&self->solution, x, y) != CELL_FILLED; y++);
+            for (; y < h && board_get(&self->solution, x, y) != CELL_FILL; y++);
 
             // count cells
             size_t i;
-            for (i = 0; y + i < h && board_get(&self->solution, x, y + i) == CELL_FILLED; i++);
+            for (i = 0; y + i < h && board_get(&self->solution, x, y + i) == CELL_FILL; i++);
             if (i == 0) break;
             da_append(&col_groups, i);
             y += i;
