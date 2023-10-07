@@ -4,8 +4,7 @@ module Solver (solve) where
 import Board (Board(MkBoard), Group, Matrix, Cell(..), Line, Row)
 
 import Control.Monad (guard, mfilter)
-import Data.List (transpose, groupBy)
-import Data.Function (on)
+import Data.List (transpose)
 import Control.Applicative (Alternative(..))
 
 -- TODO: find all solutions in case of a grid with more than one solution
