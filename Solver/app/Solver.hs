@@ -1,4 +1,3 @@
--- TODO: make it find all the possible solutions, instead of only one solution
 module Solver (solve) where
 
 import Board (Board(MkBoard), Group, Matrix, Cell(..), Line, Row)
