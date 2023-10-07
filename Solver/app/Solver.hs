@@ -24,50 +24,10 @@ fix f x
   where x' = f x
 
 solveLine :: [Group] -> Line -> Line
-solveLine groups = finishGroups groups . mergeAllCombs groups
+solveLine gs line = zipWith (<|>) line $ mergeLines $ filter (matches line) $ lineCombinations gs $ length line
   where
-    mergeAllCombs :: [Group] -> Line -> Line
-    mergeAllCombs gs xs = zipWith (<|>) xs $ mergeLines $ filter (matches xs) $ lineCombinations gs $ length xs
-
     matches :: Line -> Row Cell -> Bool
-    matches xs ys = and $ zipWith (\x y -> maybe True (==y) x) xs ys
-
--- WARNING: didn't check it really good, so I hope that it works as expected
--- INFO: this function marks X's for groups that are already finished
-finishGroups :: [Group] -> Line -> Line
-finishGroups groups line = intersectLines finishGroupRegular finishGroupReverse
-  where
-    finishGroupRegular = concat $ finishGroups' groups $ groupBy ((==) `on` (== Just Fill)) line
-    finishGroupReverse = reverse $ concat $ finishGroups' (reverse groups) $ groupBy ((==) `on` (== Just Fill)) $ reverse line
-
-    intersectLines :: Line -> Line -> Line
-    intersectLines = zipWith (\x -> (>>= \y -> mfilter (==y) x))
-    -- intersectLines _ [] = []
-    -- intersectLines [] _ = []
-    -- intersectLines (x:xs) (y:ys)
-    --   | x == y = x : intersectLines xs ys
-      -- | otherwise = Nothing : intersectLines xs ys
-
-    finishGroups' :: [Group] -> [[Maybe Cell]] -> [[Maybe Cell]]
-    finishGroups' _ [] = []
-    finishGroups' [] xs = xs
-    finishGroups' (g:gs) (chunk:not_group:chunks) -- fill after chunk
-      | head chunk == Just Fill =
-        if isLength g chunk
-        then chunk : [Just Remove] : tail not_group : finishGroups' gs chunks
-        else chunk : not_group : finishGroups' gs chunks
-    finishGroups' (g:gs) (not_group:chunk:chunks) -- fill before chunk
-      | head chunk == Just Fill =
-        if isLength g chunk
-        then init not_group : [Just Remove] : finishGroups' gs (chunk:chunks)
-        else not_group : chunk : finishGroups' gs chunks
-    finishGroups' gs (not_group:chunks) = not_group : finishGroups' gs chunks
-
-isLength :: Int -> [a] -> Bool
-isLength 0 [] = True
-isLength 0 _ = False
-isLength _ [] = False
-isLength l (_:xs) = isLength (pred l) xs
+    matches xs = and . zipWith (\x y -> maybe True (==y) x) xs
 
 mergeLines :: [Row Cell] -> Line
 mergeLines [] = []
