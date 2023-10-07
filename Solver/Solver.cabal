@@ -1,0 +1,20 @@
+cabal-version:   3.0
+name:            Solver
+version:         0.1.0.0
+license:         NONE
+author:          Netanel Friedman
+maintainer:      netanel.friedman6@gmail.com
+category:        Game
+build-type:      Simple
+-- extra-doc-files:
+
+common warnings
+    ghc-options: -Wall
+
+executable Solver
+    import:           warnings
+    main-is:          Main.hs
+    other-modules:    Solver, Board
+    build-depends:    base ^>=4.18.0.0
+    hs-source-dirs:   app
+    default-language: GHC2021
