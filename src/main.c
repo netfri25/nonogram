@@ -62,7 +62,7 @@ void draw_app(App const* const app);
 #define GRID_COLOR GRAY
 #define BUF_CAP 16
 
-#define FPS 45.f
+#define FPS 45
 #define TIME_BETWEEN_FRAMES (CLOCKS_PER_SEC / FPS)
 
 int main(void) {
@@ -78,16 +78,12 @@ int main(void) {
     app.to_fill = CELL_REMOVE;
     app.to_draw = &app.game.board;
 
+    srand(69);
+    SetTargetFPS(FPS);
     game_generate_new(&app.game);
     calc_longest_row_and_col(&app);
     calc_font_sizes(&app);
-    clock_t last_update = 0;
     while (!WindowShouldClose()) {
-        clock_t now = clock();
-        if (now - last_update < TIME_BETWEEN_FRAMES)
-            continue;
-        last_update = now;
-
         calc_font_sizes(&app);
         calc_board_rect(&app);
         draw_app(&app);
