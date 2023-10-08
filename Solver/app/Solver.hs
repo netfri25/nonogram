@@ -46,6 +46,6 @@ lineCombinations _ len | len <= 0 = return []
 lineCombinations [] len = return $ replicate len Remove
 lineCombinations (g:gs) len = do
   guard (sum (g:gs) + length gs <= len)
-  let ls = (Remove:) <$> lineCombinations (g:gs) (pred len)
-  let rs = (\rest -> replicate g Fill ++ Remove : rest) <$> lineCombinations gs (len - g - 1)
-  ls ++ rs
+  let pad_remove = (Remove:) <$> lineCombinations (g:gs) (pred len)
+  let create_group = (\rest -> replicate g Fill ++ Remove : rest) <$> lineCombinations gs (len - g - 1)
+  create_group ++ pad_remove
