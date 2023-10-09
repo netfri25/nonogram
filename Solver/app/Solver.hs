@@ -1,31 +1,45 @@
+-- TODO: optimize the solver (BY A LOT)
 module Solver (solve) where
 
-import Board (Board(MkBoard), Group, Matrix, Cell(..), Line, Row)
+import Board (BoardGroups(..), Group, Matrix, Cell(..), Line, Row, Grid)
 
 import Control.Monad (guard, mfilter)
 import Data.List (transpose)
 import Control.Applicative (Alternative(..))
 
 -- TODO: find all solutions in case of a grid with more than one solution
-solve :: Board -> Board
-solve (MkBoard rgs cgs grid) = MkBoard rgs cgs $ fix solveAll grid
+solve :: BoardGroups -> Grid
+solve (MkBoardGroups rgs cgs) = solve' rows_combs cols_combs empty_grid
   where
-    solveAll = transpose . solveLines cgs . transpose . solveLines rgs
+    rows = length cgs
+    cols = length rgs
 
-    solveLines :: [[Group]] -> Matrix (Maybe Cell) -> Matrix (Maybe Cell)
-    solveLines = zipWith solveLine
+    empty_grid = replicate rows (replicate cols Nothing)
 
-fix :: Eq a => (a -> a) -> a -> a
-fix f x
-  | f x' == x = x'
-  | otherwise = fix f x'
-  where x' = f x
+    rows_combs = map (`lineCombinations` length cgs) rgs
+    cols_combs = map (`lineCombinations` length rgs) cgs
 
-solveLine :: [Group] -> Line -> Line
-solveLine gs line = zipWith (<|>) line $ mergeLines $ filter (matches line) $ lineCombinations gs $ length line
-  where
-    matches :: Line -> Row Cell -> Bool
-    matches xs = and . zipWith (\x y -> maybe True (==y) x) xs
+    solve' :: [[Row Cell]] -> [[Row Cell]] -> Matrix (Maybe Cell) -> Matrix (Maybe Cell)
+    solve' rcombs ccombs grid =
+      let (grid',  rcombs') = solveLines rcombs grid
+          (grid'', ccombs') = solveLines ccombs (transpose grid')
+          grid''' = transpose grid''
+          changed = grid /= grid''' || rcombs /= rcombs' || ccombs/= ccombs'
+       in if changed
+          then solve' rcombs' ccombs' grid'''
+          else grid'''
+
+    solveLines :: [[Row Cell]] -> Matrix (Maybe Cell) -> (Matrix (Maybe Cell), [[Row Cell]])
+    solveLines combs grid =
+      let combs' = zipWith (filter . matches) grid combs
+          grid' = zipWith solveLine combs grid
+       in (grid', combs')
+
+solveLine :: [Row Cell] -> Line -> Line
+solveLine combs line = zipWith (<|>) line $ mergeLines $ filter (matches line) combs
+
+matches :: Line -> Row Cell -> Bool
+matches xs = and . zipWith (\m v -> maybe True (==v) m) xs
 
 mergeLines :: [Row Cell] -> Line
 mergeLines [] = []
@@ -42,7 +56,8 @@ allEq = and . (zipWith (==) <$> init <*> tail)
 -- INFO: might return a row longer than the given length, but that's
 --       fine because in the solveLine it's selected based on the original row
 lineCombinations :: [Group] -> Int -> [Row Cell]
-lineCombinations _ len | len <= 0 = return []
+lineCombinations gs 0 = guard (null gs) >> return []
+lineCombinations _ len | len < 0 = return []
 lineCombinations [] len = return $ replicate len Remove
 lineCombinations (g:gs) len = do
   guard (sum (g:gs) + length gs <= len)

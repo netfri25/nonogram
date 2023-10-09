@@ -9,6 +9,7 @@
 #include <math.h>
 #include <time.h>
 
+#include "client.h"
 #include "game.h"
 
 typedef struct {
@@ -35,6 +36,7 @@ typedef struct {
     float font_width;
 
     Board* to_draw;
+    Client solver_client;
 } App;
 
 // utility functions
@@ -57,13 +59,21 @@ void calc_font_sizes(App* const app);
 void handle_input(App* const app);
 void draw_app(App const* const app);
 
+// solver server related functions
+bool send_to_solver_server(App* const app);
+bool read_from_solver_server(App* const app);
+
 // global definitions
 #define GRID_THICK 2.f
 #define GRID_COLOR GRAY
-#define BUF_CAP 16
+#define DRAW_BUF_CAP 16
+#define SERDE_BUF_CAP 8192
 
 #define FPS 45
 #define TIME_BETWEEN_FRAMES (CLOCKS_PER_SEC / FPS)
+
+#define SOLVER_SERVER_PORT 6969
+#define SOLVER_SERVER_ADDR INADDR_ANY
 
 int main(void) {
     SetTraceLogLevel(LOG_WARNING);
@@ -71,14 +81,18 @@ int main(void) {
 
     App app = {0};
 
-    app.size = 7;
+    app.size = 20;
     app.game = game_alloc(app.size, app.size);
     app.last_changed = (IVec2) { -1, -1 };
     app.last_button = MOUSE_BUTTON_LEFT;
     app.to_fill = CELL_REMOVE;
     app.to_draw = &app.game.board;
+    app.solver_client = client_alloc(stderr);
 
-    srand(69);
+    int const seed = rand();
+    printf("seed: %d\n", seed);
+    srand(seed);
+
     SetTargetFPS(FPS);
     game_generate_new(&app.game);
     calc_longest_row_and_col(&app);
@@ -137,6 +151,20 @@ void handle_input(App* const app) {
             app->to_draw = &app->game.solution;
         } else {
             app->to_draw = &app->game.board;
+        }
+    }
+
+    if (IsKeyPressed(KEY_C)) {
+        if (!app->solver_client.connected
+            && !client_connect(&app->solver_client, SOLVER_SERVER_PORT, SOLVER_SERVER_ADDR))
+        {
+            return;
+        }
+
+        bool const err = !send_to_solver_server(app) || !read_from_solver_server(app);
+        if (err) {
+            fprintf(stderr, "ERROR: no response from server\n");
+            return;
         }
     }
 }
@@ -300,9 +328,9 @@ void draw_text(App const* const app) {
 
         IntVec const* const list = app->game.rows_groups.items + i;
         for (size_t j = 0; j < list->count; j++) {
-            char buf[BUF_CAP];
+            char buf[DRAW_BUF_CAP];
             float const x = (app->board_rect.x - app->longest_row * app->font_line_width) + (app->longest_row - j - 1) * app->font_line_width;
-            snprintf(buf, BUF_CAP, "%d", list->items[list->count - j - 1]);
+            snprintf(buf, DRAW_BUF_CAP, "%d", list->items[list->count - j - 1]);
             int const length = MeasureText(buf, app->font_height);
             float const x_off = (app->font_line_width - length) / 2.;
             DrawText(buf, x + x_off, y, app->font_height, WHITE);
@@ -315,15 +343,97 @@ void draw_text(App const* const app) {
 
         IntVec const* const list = app->game.cols_groups.items + i;
         for (size_t j = 0; j < list->count; j++) {
-            char buf[BUF_CAP];
+            char buf[DRAW_BUF_CAP];
             float const y
                 = (app->board_rect.y - app->longest_col * app->font_line_height)
                 + (app->longest_col - j - 1) * app->font_line_height
                 + (app->font_line_height - app->font_height) / 2.;
-            snprintf(buf, BUF_CAP, "%d", list->items[list->count - j - 1]);
+            snprintf(buf, DRAW_BUF_CAP, "%d", list->items[list->count - j - 1]);
             int const length = MeasureText(buf, app->font_height);
             float const x_off = (app->font_line_width - length) / 2.;
             DrawText(buf, x + x_off, y, app->font_height, WHITE);
         }
     }
+}
+
+bool send_to_solver_server(App* const app) {
+#define WRITE(...) \
+    do { \
+        if (cursor >= SERDE_BUF_CAP) { \
+            fprintf(stderr, "ERROR: buffer overflow\n"); \
+            return false; \
+        } \
+        cursor += snprintf(buf + cursor, SERDE_BUF_CAP - cursor, __VA_ARGS__); \
+    } while (0);
+
+    char buf[SERDE_BUF_CAP] = {0};
+    size_t cursor = 0;
+
+    // write the rows
+    WRITE("[");
+    for (size_t i = 0; i < app->game.rows_groups.count; i++) {
+        IntVec const* const row = app->game.rows_groups.items + i;
+        if (i != 0) WRITE(",");
+        WRITE("[");
+        for (size_t j = 0; j < row->count; j++) {
+            if (j != 0) WRITE(",");
+            WRITE("%d", row->items[j]);
+        }
+        WRITE("]");
+    }
+    WRITE("]\n");
+
+    // write the cols
+    WRITE("[");
+    for (size_t i = 0; i < app->game.cols_groups.count; i++) {
+        IntVec const* const col = app->game.cols_groups.items + i;
+        if (i != 0) WRITE(",");
+        WRITE("[");
+        for (size_t j = 0; j < col->count; j++) {
+            if (j != 0) WRITE(",");
+            WRITE("%d", col->items[j]);
+        }
+        WRITE("]");
+    }
+    WRITE("]\n");
+
+    size_t sent = 0;
+    bool const success = client_send(&app->solver_client, buf, cursor, &sent);
+    if (!success || sent != cursor) return false;
+
+#undef WRITE
+    return true;
+}
+
+bool read_from_solver_server(App* const app) {
+    size_t len = app->size * app->size;
+    char buffer[len];
+    size_t read = 0;
+    bool const success = client_read(&app->solver_client, buffer, len, &read);
+    if (!success) return false;
+    if (read != len) {
+        fprintf(stderr, "ERROR: expected %zu bytes, but got %zu instead\n", len, read);
+        return false;
+    }
+
+    printf("INFO: read %zu bytes\n", read);
+
+    for (size_t i = 0; i < len; i++) {
+        enum Cell* const cell = app->game.board.cells + i;
+        switch (buffer[i]) {
+        case '.':
+            break;
+        case 'x':
+            *cell = CELL_REMOVE;
+            break;
+        case '@':
+            *cell = CELL_FILL;
+            break;
+        default:
+            fprintf(stderr, "ERROR: unknown character '%c'\n", buffer[i]);
+            return false;
+        }
+    }
+
+    return true;
 }

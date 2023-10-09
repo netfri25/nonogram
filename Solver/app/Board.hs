@@ -3,8 +3,10 @@ module Board
   , Row
   , Cell(..)
   , Group
-  , Board(..)
+  , BoardGroups(..)
   , Line
+  , Grid
+  , parseBoardGroups
   ) where
 
 type Matrix a = [Row a]
@@ -19,16 +21,18 @@ instance Show Cell where
 
 type Group = Int
 
-data Board = MkBoard
-  { rowsGroups :: [[Group]]
-  , colsGroups :: [[Group]]
-  , boardGrid :: Matrix (Maybe Cell)
+data BoardGroups = MkBoardGroups
+  { groupsRows :: [[Group]]
+  , groupsCols :: [[Group]]
   } deriving Show
 
 type Line = Row (Maybe Cell)
 
--- testBoard :: Board
--- testBoard = MkBoard
---   [[5], [1, 4], [2, 1], [1, 2], [1, 1, 2], [1, 4], [1, 1, 2]]
---   [[6], [1], [1, 1], [2, 2], [2, 2], [7], [2, 1, 2]]
---   (replicate 7 (replicate 7 Nothing))
+type Grid = Matrix (Maybe Cell)
+
+-- the first line contains the list of rows groups, and the second line is for the columns
+parseBoardGroups :: String -> Maybe BoardGroups
+parseBoardGroups input =
+  case map read (lines input) of
+    [rows, cols] -> Just $ MkBoardGroups rows cols
+    _ -> Nothing
