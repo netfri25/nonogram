@@ -2,6 +2,8 @@
 module Solver (solve) where
 
 import Board (BoardGroups(..), Group, Matrix, Cell(..), Line, Row, Grid)
+import Memo (Memo, evalMemo)
+import qualified Memo as M
 
 import Control.Monad (guard, mfilter)
 import Data.List (transpose)
@@ -11,32 +13,28 @@ import Control.Applicative (Alternative(..))
 solve :: BoardGroups -> Grid
 solve (MkBoardGroups rgs cgs) = solve' rows_combs cols_combs empty_grid
   where
-    rows = length cgs
-    cols = length rgs
+    rows = length rgs
+    cols = length cgs
 
     empty_grid = replicate rows (replicate cols Nothing)
 
-    rows_combs = map (`lineCombinations` length cgs) rgs
-    cols_combs = map (`lineCombinations` length rgs) cgs
+    rows_combs = map (flip evalMemo mempty . flip lineCombinations cols . zip [0..]) rgs
+    cols_combs = map (flip evalMemo mempty . flip lineCombinations rows . zip [0..]) cgs
 
     solve' :: [[Row Cell]] -> [[Row Cell]] -> Matrix (Maybe Cell) -> Matrix (Maybe Cell)
     solve' rcombs ccombs grid =
-      let (grid',  rcombs') = solveLines rcombs grid
-          (grid'', ccombs') = solveLines ccombs (transpose grid')
+      let grid'   = zipWith solveLine rcombs grid
+          grid''  = zipWith solveLine ccombs (transpose grid')
+          ccombs' = zipWith (filter . matches) grid'' ccombs
           grid''' = transpose grid''
-          changed = grid /= grid''' || rcombs /= rcombs' || ccombs/= ccombs'
+          rcombs' = zipWith (filter . matches) grid''' rcombs
+          changed = grid /= grid'''
        in if changed
           then solve' rcombs' ccombs' grid'''
           else grid'''
 
-    solveLines :: [[Row Cell]] -> Matrix (Maybe Cell) -> (Matrix (Maybe Cell), [[Row Cell]])
-    solveLines combs grid =
-      let combs' = zipWith (filter . matches) grid combs
-          grid' = zipWith solveLine combs grid
-       in (grid', combs')
-
 solveLine :: [Row Cell] -> Line -> Line
-solveLine combs line = zipWith (<|>) line $ mergeLines $ filter (matches line) combs
+solveLine combs line = zipWith (<|>) line (mergeLines combs)
 
 matches :: Line -> Row Cell -> Bool
 matches xs = and . zipWith (\m v -> maybe True (==v) m) xs
@@ -53,14 +51,23 @@ mergeLines xs =
 allEq :: Eq a => [a] -> Bool
 allEq = and . (zipWith (==) <$> init <*> tail)
 
+type Indexed a = (Int, a)
+
 -- INFO: might return a row longer than the given length, but that's
 --       fine because in the solveLine it's selected based on the original row
-lineCombinations :: [Group] -> Int -> [Row Cell]
-lineCombinations gs 0 = guard (null gs) >> return []
-lineCombinations _ len | len < 0 = return []
-lineCombinations [] len = return $ replicate len Remove
+lineCombinations :: [Indexed Group] -> Int -> Memo (Indexed Int) [Row Cell] [Row Cell]
+lineCombinations [] len = return $ return $ replicate len Remove
 lineCombinations (g:gs) len = do
-  guard (sum (g:gs) + length gs <= len)
-  let pad_remove = (Remove:) <$> lineCombinations (g:gs) (pred len)
-  let create_group = (\rest -> replicate g Fill ++ Remove : rest) <$> lineCombinations gs (len - g - 1)
-  create_group ++ pad_remove
+  let key = (fst g, len)
+  let no_space = sum (map snd (g:gs)) + length gs > len -- length gs == length (g:gs) - 1
+  if no_space
+  then return mempty
+  else M.lookup key >>= maybe (calcNext key) return
+  where
+    calcNext :: Indexed Int -> Memo (Indexed Int) [Row Cell] [Row Cell]
+    calcNext key = do
+      let create_group = fmap (\rest -> replicate (snd g) Fill ++ Remove : rest) <$> lineCombinations gs (len - snd g - 1)
+      let pad_remove = fmap (Remove:) <$> lineCombinations (g:gs) (pred len)
+      value <- (++) <$> create_group <*> pad_remove
+      M.insert key value
+      return value

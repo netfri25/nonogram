@@ -14,7 +14,7 @@ common warnings
 executable Solver
     import:           warnings
     main-is:          Main.hs
-    other-modules:    Solver, Board
-    build-depends:    base ^>=4.18.0.0, socket == 0.8.3.0, bytestring == 0.11.4.0
+    other-modules:    Solver, Board, Memo
+    build-depends:    base ^>=4.18.0.0, socket == 0.8.3.0, bytestring == 0.11.4.0, containers == 0.6.7, mtl == 2.3.1
     hs-source-dirs:   app
     default-language: GHC2021
