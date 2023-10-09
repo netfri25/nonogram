@@ -5,7 +5,7 @@ import Board (BoardGroups(..), Group, Matrix, Cell(..), Line, Row, Grid)
 import Memo (Memo, evalMemo)
 import qualified Memo as M
 
-import Control.Monad (guard, mfilter)
+import Control.Monad (mfilter)
 import Data.List (transpose)
 import Control.Applicative (Alternative(..))
 
@@ -59,7 +59,8 @@ lineCombinations :: [Indexed Group] -> Int -> Memo (Indexed Int) [Row Cell] [Row
 lineCombinations [] len = return $ return $ replicate len Remove
 lineCombinations (g:gs) len = do
   let key = (fst g, len)
-  let no_space = sum (map snd (g:gs)) + length gs > len -- length gs == length (g:gs) - 1
+  -- accumulates the length and the sum at the same time
+  let no_space = any (>len) $ tail $ scanl (\acc -> succ . (acc+)) (-1) (map snd (g:gs))
   if no_space
   then return mempty
   else M.lookup key >>= maybe (calcNext key) return
