@@ -1,4 +1,4 @@
-:- module(solver, [nonogram/3]).
+:- module(solver, [nonogram/3, count_groups/5]).
 
 :- use_module(library(clpfd)).
 
@@ -16,7 +16,7 @@ nonogram(RowsGroups, ColsGroups, Grid) :-
 count_groups(Gs, Line) :-
    sum(Gs, #=, LineSum),
    sum(Line, #=, LineSum),
-   count_groups(Gs, Arcs, start, Final),
+   count_groups(Gs, Arcs, start, start, Final),
    append(Line, [0], LineZ), % needed because the Line will always end with 0
    automaton(LineZ, [source(start), sink(Final)], [arc(start, 0, start) | Arcs]).
 
@@ -27,11 +27,11 @@ count_groups(Gs, Line) :-
 %                      any more consecutive filled cells
 % tldr: like 0+ in RegEx, one or more rempty cells
 % if the group isn't 0, then add another filled cell
-count_groups([], [], Final, Final). % when there are no groups left, the last node is the final node
-count_groups([0|Gs], [arc(From, 0, From), arc(From, 0, To) | Rest], From, Final) :-
-   gensym(From, To),
-   count_groups(Gs, Rest, To, Final).
-count_groups([G|Gs], [arc(From, 1, To) | Rest], From, Final) :-
-   gensym(From, To),
+count_groups([], [], _, Final, Final). % when there are no groups left, the last node is the final node
+count_groups([0|Gs], [arc(From, 0, From), arc(From, 0, To) | Rest], Atom, From, Final) :-
+   gensym(Atom, To),
+   count_groups(Gs, Rest, Atom, To, Final).
+count_groups([G|Gs], [arc(From, 1, To) | Rest], Atom, From, Final) :-
+   gensym(Atom, To),
    G1 is G-1,
-   count_groups([G1 | Gs], Rest, To, Final).
+   count_groups([G1 | Gs], Rest, Atom, To, Final).

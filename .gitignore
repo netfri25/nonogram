@@ -1,4 +1,5 @@
 build
 nob
 nob.old
-Solver/dist-newstyle
+solver/server-last-rows.dot
+solver/server-last-cols.dot

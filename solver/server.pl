@@ -1,6 +1,7 @@
 :- module(server, [run_server/0]).
 
 :- use_module(solver, [nonogram/3]).
+:- use_module(dot, [dump_dot/3]).
 :- use_module(library(clpfd)).
 :- use_module(library(socket)).
 :- use_module(library(readutil)).
@@ -48,6 +49,7 @@ handle_service(StreamPair) :-
    bench(nonogram(RowsGroups, ColsGroups, Grid), Tms),
    maplist(label, Grid),
    maplist(writeln, Grid),
+   dump_dot(RowsGroups, ColsGroups, "solver/server-last"),
    append(Grid, Flat),
    maplist(pretty_cell, Flat, PrettyFlat),
    atomic_list_concat(PrettyFlat, Output),
