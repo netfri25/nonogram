@@ -1,4 +1,4 @@
-:- module(solver, [nonogram/3, bench/2]).
+:- module(solver, [nonogram/3]).
 
 :- use_module(library(clpfd)).
 

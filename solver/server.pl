@@ -1,6 +1,6 @@
 :- module(server, [run_server/0]).
 
-:- use_module(solver, [nonogram/3, bench/2]).
+:- use_module(solver, [nonogram/3]).
 :- use_module(library(clpfd)).
 :- use_module(library(socket)).
 :- use_module(library(readutil)).
@@ -58,3 +58,10 @@ handle_service(StreamPair) :-
 
 pretty_cell(0, 'x') :- !.
 pretty_cell(1, '@') :- !.
+
+bench(G,Tms) :-
+   T0 is cputime,
+   G,
+   T1 is cputime,
+   T is T1 - T0,
+   Tms is T * 1000.
