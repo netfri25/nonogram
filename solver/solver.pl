@@ -30,8 +30,8 @@ count_groups(Gs, Line) :-
 count_groups([], [], Final, Final). % when there are no groups left, the last node is the final node
 count_groups([0|Gs], [arc(From, 0, From), arc(From, 0, To) | Rest], From, Final) :-
    gensym(From, To),
-   arcs(Gs, Rest, To, Final).
+   count_groups(Gs, Rest, To, Final).
 count_groups([G|Gs], [arc(From, 1, To) | Rest], From, Final) :-
    gensym(From, To),
    G1 is G-1,
-   arcs([G1 | Gs], Rest, To, Final).
+   count_groups([G1 | Gs], Rest, To, Final).
