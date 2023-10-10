@@ -28,13 +28,10 @@ count_groups(Gs, Line) :-
 % tldr: like 0+ in RegEx, one or more rempty cells
 % if the group isn't 0, then add another filled cell
 arcs([], [], Final, Final). % when there are no groups left, the last node is the final node
-arcs([G|Gs], Arcs, From, Final) :-
+arcs([0|Gs], [arc(From, 0, From), arc(From, 0, To) | Rest], From, Final) :-
    gensym(From, To),
-   ( G == 0 ->
-      Arcs = [arc(From, 0, From), arc(From, 0, To) | Rest],
-      arcs(Gs, Rest, To, Final)
-   ;
-      Arcs = [arc(From, 1, To) | Rest],
-      G1 is G-1,
-      arcs([G1 | Gs], Rest, To, Final)
-   ).
+   arcs(Gs, Rest, To, Final).
+arcs([G|Gs], [arc(From, 1, To) | Rest], From, Final) :-
+   gensym(From, To),
+   G1 is G-1,
+   arcs([G1 | Gs], Rest, To, Final).
