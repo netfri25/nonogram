@@ -416,8 +416,6 @@ bool read_from_solver_server(App* const app) {
         return false;
     }
 
-    printf("INFO: read %zu bytes\n", read);
-
     for (size_t i = 0; i < len; i++) {
         enum Cell* const cell = app->game.board.cells + i;
         switch (buffer[i]) {
