@@ -1,6 +1,6 @@
 :- module(dot, [dump_dot/3]).
 
-:- use_module(solver, [count_groups/5]).
+:- use_module(solver, [line_arcs/5]).
 
 dump_dot(RowsGroups, ColsGroups, Name) :-
    atom_concat(Name, "-rows.dot", FilenameRows),
@@ -41,7 +41,7 @@ write_line(OutStream, LineAtom, CounterAtom, Gs) :-
 
 line_arcs(Gs, LineAtom, CounterAtom, Arcs) :-
    atom_concat(LineAtom, CounterAtom, FullAtom),
-   count_groups(Gs, Arcs, FullAtom, FullAtom, _).
+   line_arcs(Gs, Arcs, FullAtom, FullAtom, _).
 
 write_node(Out, arc(From, Value, To)) :-
    write(Out, "    "),
