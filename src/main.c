@@ -107,6 +107,7 @@ int main(void) {
 
     CloseWindow();
     game_free(app.game);
+    client_free(app.solver_client);
 }
 
 void handle_input(App* const app) {
