@@ -1,5 +1,3 @@
-// TODO(2): create a solver as a separate program (maybe write it in Haskell, or even Prolog)
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
