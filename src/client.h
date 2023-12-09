@@ -28,6 +28,9 @@ bool client_connect(
     in_addr_t const addr
 );
 
+// disconnect the client from the server (if connected)
+void client_disconnect(Client* const self);
+
 // send data to the server
 bool client_send(
     Client* const self,

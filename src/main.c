@@ -166,6 +166,8 @@ void handle_input(App* const app) {
             fprintf(stderr, "ERROR: no response from server\n");
             return;
         }
+
+        client_disconnect(&app->solver_client);
     }
 }
 

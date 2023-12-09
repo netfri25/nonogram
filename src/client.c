@@ -20,7 +20,7 @@ Client client_alloc(FILE* const log) {
 }
 
 void client_free(Client self) {
-    if (self.socket_fd > 0) close(self.socket_fd);
+    client_disconnect(&self);
 }
 
 bool client_connect(
@@ -42,6 +42,12 @@ bool client_connect(
     CLIENT_LOG("client connect success\n");
     self->connected = true;
     return true;
+}
+
+void client_disconnect(Client* const self) {
+    if (self->socket_fd > 0) close(self->socket_fd);
+    self->socket_fd = 0;
+    self->connected = false;
 }
 
 bool client_send(
