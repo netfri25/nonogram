@@ -39,13 +39,42 @@ typedef struct {
 
 // utility functions
 Rectangle get_screen_rect(void);
-IVec2 get_mouse_indices(Rectangle const board_rect, Vector2 const mouse_position, int32_t const w, int32_t const h);
+IVec2 get_mouse_indices(
+    Rectangle const board_rect,
+    Vector2 const mouse_position,
+    int32_t const w,
+    int32_t const h
+);
 
 // drawing functions
-void draw_board(Board const* const board, Rectangle const bounds, IVec2 const mouse_indices);
-void draw_cell(float const x, float const y, float const w, float const h, enum Cell const cell, bool const mouse_inside);
-void draw_grid(Rectangle const bounds, float const w, float const h);
-void draw_x(float const x, float const y, float const w, float const h);
+void draw_board(
+    Board const* const board,
+    Rectangle const bounds,
+    IVec2 const mouse_indices
+);
+
+void draw_cell(
+    float const x,
+    float const y,
+    float const w,
+    float const h,
+    enum Cell const cell,
+    bool const mouse_inside
+);
+
+void draw_grid(
+    Rectangle const bounds,
+    float const w,
+    float const h
+);
+
+void draw_x(
+    float const x,
+    float const y,
+    float const w,
+    float const h
+);
+
 void draw_text(App const* const app);
 
 // calculations for the app
@@ -201,7 +230,11 @@ void calc_board_rect(App* const app) {
     };
 }
 
-void draw_board(Board const* const board, Rectangle const bounds, IVec2 const mouse_indices) {
+void draw_board(
+    Board const* const board,
+    Rectangle const bounds,
+    IVec2 const mouse_indices
+) {
     float const cell_w = bounds.width / board->w;
     float const cell_h = bounds.height / board->h;
 
@@ -244,7 +277,11 @@ void draw_cell(
     }
 }
 
-void draw_grid(Rectangle const bounds, float const w, float const h) {
+void draw_grid(
+    Rectangle const bounds,
+    float const w,
+    float const h
+) {
     float const cell_w = bounds.width / w;
     for (size_t i = 0; i <= w; i++) {
         float const x = bounds.x + i * cell_w;
@@ -262,7 +299,12 @@ void draw_grid(Rectangle const bounds, float const w, float const h) {
     }
 }
 
-void draw_x(float const x, float const y, float const w, float const h) {
+void draw_x(
+    float const x,
+    float const y,
+    float const w,
+    float const h
+) {
     float const thick = (w + h) * 0.1 / 2.;
     float const pad = thick;
     Vector2 const tl = (Vector2) { x + pad,     y + pad };
@@ -273,7 +315,12 @@ void draw_x(float const x, float const y, float const w, float const h) {
     DrawLineEx(bl, tr, thick, RED);
 }
 
-IVec2 get_mouse_indices(Rectangle const board_rect, Vector2 const mouse_position, int32_t const w, int32_t const h) {
+IVec2 get_mouse_indices(
+    Rectangle const board_rect,
+    Vector2 const mouse_position,
+    int32_t const w,
+    int32_t const h
+) {
     if (CheckCollisionPointRec(mouse_position, board_rect)) {
         return (IVec2) {
             .x = (mouse_position.x - board_rect.x) * (float) w / board_rect.width,
