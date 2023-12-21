@@ -80,7 +80,7 @@ Nob_Procs compile_to_objects(Nob_File_Paths const* const files) {
 
         // compile to an object file
         Nob_Cmd cmd = {0};
-        nob_cmd_append(&cmd, "gcc", CFLAGS);
+        nob_cmd_append(&cmd, CC, CFLAGS);
         nob_cmd_append(&cmd, "-c", nob_temp_strdup(file_path_sb.items));
         nob_cmd_append(&cmd, "-o", nob_temp_strdup(output_path_sb.items));
 
