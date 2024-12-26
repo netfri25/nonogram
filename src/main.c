@@ -103,6 +103,7 @@ bool read_from_solver_server(App* const app);
 #define SOLVER_SERVER_ADDR INADDR_ANY
 
 int main(void) {
+    SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     SetTraceLogLevel(LOG_WARNING);
     InitWindow(850, 850, "Window");
 
