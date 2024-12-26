@@ -94,7 +94,6 @@ bool read_from_solver_server(App* const app);
 #define GRID_THICK 2.f
 #define GRID_COLOR GRAY
 #define DRAW_BUF_CAP 16
-#define SERDE_BUF_CAP 8192
 
 #define FPS 45
 #define TIME_BETWEEN_FRAMES (CLOCKS_PER_SEC / FPS)
@@ -408,14 +407,18 @@ void draw_text(App const* const app) {
 bool send_to_solver_server(App* const app) {
 #define WRITE(...) \
     do { \
-        if (cursor >= SERDE_BUF_CAP) { \
+        if (cursor >= size) { \
             fprintf(stderr, "ERROR: buffer overflow\n"); \
-            return false; \
+            result = false; \
+            goto defer; \
         } \
-        cursor += snprintf(buf + cursor, SERDE_BUF_CAP - cursor, __VA_ARGS__); \
+        cursor += snprintf(buf + cursor, size - cursor, __VA_ARGS__); \
     } while (0);
 
-    char buf[SERDE_BUF_CAP] = {0};
+    bool result = true;
+    size_t const size = 0x10000;
+    char* const buf = malloc(size);
+    buf[0] = 0;
     size_t cursor = 0;
 
     // write the rows
@@ -451,18 +454,26 @@ bool send_to_solver_server(App* const app) {
     if (!success || sent != cursor) return false;
 
 #undef WRITE
-    return true;
+defer:
+    free(buf);
+    return result;
 }
 
 bool read_from_solver_server(App* const app) {
+    bool result = true;
     size_t len = app->size * app->size;
-    char buffer[len];
+    char* const buffer = malloc(sizeof(char) * len);
     size_t read = 0;
     bool const success = client_read(&app->solver_client, buffer, len, &read);
-    if (!success) return false;
+    if (!success) {
+        result = false;
+        goto defer;
+    }
+
     if (read != len) {
         fprintf(stderr, "ERROR: expected %zu bytes, but got %zu instead\n", len, read);
-        return false;
+        result = false;
+        goto defer;
     }
 
     for (size_t i = 0; i < len; i++) {
@@ -478,9 +489,12 @@ bool read_from_solver_server(App* const app) {
             break;
         default:
             fprintf(stderr, "ERROR: unknown character '%c'\n", buffer[i]);
-            return false;
+            result = false;
+            goto defer;
         }
     }
 
-    return true;
+defer:
+    free(buffer);
+    return result;
 }
