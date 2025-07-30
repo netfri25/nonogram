@@ -1,2 +1,2 @@
 #!/usr/bin/sh
-prolog -g run_server solver/server.pl
+swipl -g run_server solver/server.pl
