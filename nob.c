@@ -34,7 +34,7 @@ bool files_to_compile(char const* const src_dir, Nob_File_Paths* const files) {
             .count = 2,
         };
 
-        // nob_log(NOB_INFO, "FOUND: %s/%s", src_dir, file_name);
+        nob_log(NOB_INFO, "FOUND: %s/%s", src_dir, file_name);
 
         if (nob_sv_eq(file_ext, nob_sv_from_parts(".c", 2))) {
             file_name_sv.count -= 2; // remove the file extension
