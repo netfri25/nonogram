@@ -4,7 +4,7 @@ simple nonogram game writtern in C with [raylib](https://www.raylib.com/)
 ## Building
 #### Dependencies
  - gcc
- - [raylib](https://www.raylib.com/)
+ - [raylib](https://www.raylib.com/) (already provided)
  - [swi-prolog](https://www.swi-prolog.org/) (optional. only for the server)
 
 #### Running the application
